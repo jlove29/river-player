@@ -22,6 +22,10 @@ class Trick():
         self.currentWinner = leader
         self.leader = leader
     def lead(self, card):
+        if card[1] == self.trump:
+            for c in self.parent.hands[self.leader]:
+                if c[1] != self.trump:
+                    return -1
         self.seen.append(card)
         self.suit = card[1]
         if card[1] == self.trump:
@@ -29,7 +33,12 @@ class Trick():
         else:
             self.currentBest = card[0]
         self.parent.decrementHand(self.leader, card)
+        return 0
     def play(self, card, player):
+        if card[1] != self.suit:
+            for c in self.parent.hands[player]:
+                if c[1] == self.suit:
+                    return -1
         self.seen.append(card)
         value = card[0]
         if card[1] == self.trump:
@@ -40,6 +49,7 @@ class Trick():
             self.currentBest = value
             self.currentWinner = player
         self.parent.decrementHand(player, card)
+        return 0
 
 
 

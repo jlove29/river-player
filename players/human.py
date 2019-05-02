@@ -4,6 +4,9 @@ def makelead(hand, trump):
     print "Trump: " + trump
     # ask for input
     move = input("Enter position of card (0-indexed): ")
+    if move >= len(hand):
+        print "Illegal position"
+        return makelead(hand, trump)
     return hand[move]
 
 def makemove(hand, trump, suit, seen):
@@ -12,6 +15,9 @@ def makemove(hand, trump, suit, seen):
     print "Leading Suit: " + suit
     print "Trick so far: " + str(seen)
     move = input("Enter position of card (0-indexed): ")
+    if move >= len(hand):
+        print "Illegal position"
+        return makemove(hand, trump, suit, seen)
     return hand[move]
 
 def makebid(hand, trump):
@@ -28,3 +34,6 @@ def reporttrick(lastwinner, i):
 
 def reportpoints(k):
     print "you got " + str(k) + " points from that round"
+
+def reporterror():
+    print "Illegal move"

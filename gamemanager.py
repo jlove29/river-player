@@ -33,13 +33,23 @@ def playround(rd):
         # create tricks
         trick = r.newTrick(lastwinner)
         hand = r.getHand(lastwinner)
-        trick.lead(players[lastwinner].makelead(hand, trump))
+        while True:
+            x = trick.lead(players[lastwinner].makelead(hand, trump))
+            if x < 0:
+                players[lastwinner].reporterror()
+            else:
+                break
         suit = trick.suit
 
         for i in range(1, nplayers):
             p = (lastwinner + i) % nplayers
             hand = r.getHand(p)
-            trick.play(players[p].makemove(hand, trump, suit, trick.seen), p)
+            while True:
+                x = trick.play(players[p].makemove(hand, trump, suit, trick.seen), p)
+                if x < 0:
+                    players[p].reporterror()
+                else:
+                    break
 
         lastwinner = trick.currentWinner
         tricks[lastwinner] += 1

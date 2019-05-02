@@ -1,4 +1,6 @@
 
+# Leads with first non-trump card in hand
+# if all trump cards, leads with first card in hand
 def makelead(hand, trump):
     for card in hand:
         if card[1] != trump:
@@ -7,6 +9,9 @@ def makelead(hand, trump):
     print "player leads with " + str(hand[0])
     return hand[0]
 
+# plays highest suit-matching card in hand
+# if none, plays lowest trump card
+# if none, plays first card
 def makemove(hand, trump, suit, seen):
     bestoption = list(hand[0])
     bestoption[0] = 0
@@ -30,6 +35,7 @@ def makemove(hand, trump, suit, seen):
     print "player plays " + str(hand[0])
     return hand[0]
 
+# bids with number of trump cards in hand
 def makebid(hand, trump):
     total = 0
     for card in hand:
@@ -38,8 +44,14 @@ def makebid(hand, trump):
     print "player bids " + str(total)
     return total
 
+# does not take info on tricks
 def reporttrick(lastwinner, i):
     pass
 
+# does not take info on round rewards
 def reportpoints(k):
+    pass
+
+# does not report errors (it does not make errors)
+def reporterror():
     pass
