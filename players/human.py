@@ -1,5 +1,6 @@
 
 def makelead(hand, trump):
+    print ""
     print "Hand: " + str(hand)
     print "Trump: " + trump
     # ask for input
@@ -10,6 +11,7 @@ def makelead(hand, trump):
     return hand[move]
 
 def makemove(hand, trump, suit, seen):
+    print ""
     print "Hand: " + str(hand)
     print "Trump: " + trump
     print "Leading Suit: " + suit
@@ -21,12 +23,14 @@ def makemove(hand, trump, suit, seen):
     return hand[move]
 
 def makebid(hand, trump):
+    print ""
     print "Hand: " + str(hand)
     print "Trump: " + trump
     bid = input("Enter bid: ")
     return bid
 
 def reporttrick(lastwinner, i):
+    print ""
     if i == lastwinner:
         print "you win"
     else:

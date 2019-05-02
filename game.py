@@ -43,7 +43,7 @@ class Trick():
         value = card[0]
         if card[1] == self.trump:
             value += 100
-        if card[1] != self.suit:
+        elif card[1] != self.suit:
             value = 0
         if value > self.currentBest:
             self.currentBest = value

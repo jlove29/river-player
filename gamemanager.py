@@ -2,13 +2,14 @@ import numpy as np
 from game import Game
 import players.baseline as baseline
 import players.human as human
+import random
 
 
 
 
 nplayers = 2
-maxh = 5
-minh = 4
+maxh = 3
+minh = 2
 
 players = [baseline, human]
 
@@ -65,8 +66,8 @@ def playround(rd):
                 points[k] += 5
                 players[k].reportpoints(5)
             else:
-                points[k] += tricks[k] + 10
-                players[k].reportpoints(tricks[k] + 10)
+                points[k] += tricks[k] * 10
+                players[k].reportpoints(tricks[k] * 10)
         elif tricks[k] > bids[k]:
             points[k] += tricks[k]
             players[k].reportpoints(tricks[k])
@@ -84,8 +85,10 @@ points = np.zeros(nplayers)
 # up the river
 for rd in range(minh, maxh+1):
     playround(rd)
+    random.shuffle(game.deck)
 # down the river
 for rd in range(maxh-1, minh-1):
     playround(rd)
+    random.shuffle(game.deck)
 print points
 
