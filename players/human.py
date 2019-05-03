@@ -27,17 +27,18 @@ def makebid(hand, trump):
     print "Hand: " + str(hand)
     print "Trump: " + trump
     bid = input("Enter bid: ")
+    print ""
     return bid
 
 def reporttrick(lastwinner, i):
     print ""
     if i == lastwinner:
-        print "you win"
+        print "You won the trick\n"
     else:
-        print "you lose, player " + str(i) + " won"
+        print "You lost the trick, player " + str(i) + " won\n"
 
 def reportpoints(k):
-    print "you got " + str(k) + " points from that round"
+    print "You got " + str(k) + " points that round"
 
 def reporterror():
     print "Illegal move"

@@ -22,10 +22,10 @@ class Trick():
         self.currentWinner = leader
         self.leader = leader
     def lead(self, card):
-        if card[1] == self.trump:
-            for c in self.parent.hands[self.leader]:
-                if c[1] != self.trump:
-                    return -1
+        # if card[1] == self.trump:
+        #     for c in self.parent.hands[self.leader]:
+        #         if c[1] != self.trump:
+        #             return -1
         self.seen.append(card)
         self.suit = card[1]
         if card[1] == self.trump:

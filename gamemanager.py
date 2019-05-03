@@ -8,13 +8,13 @@ import random
 
 
 nplayers = 2
-maxh = 3
-minh = 2
+maxh = 7
+minh = 1
 
 players = [baseline, human]
 
-
 def playround(rd):
+    print "ROUND " + str(rd) 
     # create a new round
     r = game.newRound(rd)
     r.deal()
@@ -22,11 +22,11 @@ def playround(rd):
 
     # bid
     bids = np.zeros(nplayers)
-    for j in range(nplayers):
-        hand = r.getHand(j)
-        bids[j] = players[j].makebid(hand, trump)
+    for j in range(playround.startplayer, playround.startplayer + nplayers):
+        hand = r.getHand(j % nplayers)
+        bids[j % nplayers] = players[j % nplayers].makebid(hand, trump)
 
-    lastwinner = 0
+    lastwinner = playround.startplayer
     tricks = np.zeros(nplayers)
 
     # play
@@ -73,7 +73,10 @@ def playround(rd):
             players[k].reportpoints(tricks[k])
         else:
             players[k].reportpoints(0)
-
+    print points
+    print "\n"
+    playround.startplayer = (playround.startplayer + 1) % nplayers
+playround.startplayer = 0
 
 
 
@@ -87,8 +90,9 @@ for rd in range(minh, maxh+1):
     playround(rd)
     random.shuffle(game.deck)
 # down the river
-for rd in range(maxh-1, minh-1):
+for rd in range(maxh-1, minh-1, -1):
     playround(rd)
     random.shuffle(game.deck)
+print "Final Score:"
 print points
 

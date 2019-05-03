@@ -4,9 +4,9 @@
 def makelead(hand, trump):
     for card in hand:
         if card[1] != trump:
-            print "player leads with " + str(card)
+            print "Player leads with " + str(card)
             return card
-    print "player leads with " + str(hand[0])
+    print "Player leads with " + str(hand[0])
     return hand[0]
 
 # plays highest suit-matching card in hand
@@ -41,7 +41,7 @@ def makebid(hand, trump):
     for card in hand:
         if card[1] == trump:
             total += 1
-    print "player bids " + str(total)
+    print "Player bids " + str(total)
     return total
 
 # does not take info on tricks
