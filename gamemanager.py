@@ -5,8 +5,6 @@ import players.human as human
 import random
 
 
-
-
 nplayers = 2
 maxh = 7
 minh = 1
