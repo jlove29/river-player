@@ -33,10 +33,10 @@ def init(state):
 def bid(state):
     # for now, naive bidding
     rd = state.rounds
-    return np.ceil(float(rd)/float(nplayers))
+    bid = np.ceil(float(rd)/float(nplayers))
+    return bid
 
 def rddone(state):
-    #print "My reward was", state[-1]
     return
 
 def move(state):
@@ -45,11 +45,18 @@ def move(state):
     bestscore = 0
     for action in legals:
         newstate = sm.simulate(role, state, action)
-        reward = depthcharge(role, newstate)
+        reward = runcharges(role, newstate, 1000)
         if reward > bestscore:
             bestscore = reward
             bestaction = action
-    return action
+    return bestaction
+
+def runcharges(role, state, numcharges):
+    total = 0
+    for i in range(numcharges):
+        result = depthcharge(role, state)
+        total += result
+    return float(total) / float(numcharges)
 
 
 def depthcharge(role, state):
@@ -59,10 +66,6 @@ def depthcharge(role, state):
     opp = role + 1
     if opp == nplayers:
         opp = 0
-    print ""
-    print role
-    print state.hand
-    print state.trickseen
     legals = sm.findlegals(opp, state)
     action = random.choice(legals)
     newstate = sm.simulate(opp, state, action)

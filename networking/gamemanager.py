@@ -6,8 +6,8 @@ from multiprocessing.connection import Client
 
 
 nplayers = 2
-maxh = 2
-minh = 1
+maxh = 9
+minh = 4
 
 conn1 = Client(('localhost', 7000))
 conn2 = Client(('localhost', 7001))
@@ -41,7 +41,9 @@ def playround(rd):
     for j in range(playround.startplayer, playround.startplayer + nplayers):
         pnum = j % nplayers
         newstate = GameState(pnum, [rd, trump, [], [], [], bids, nplayers], tricks)
-        bids[pnum] = sendrcv(pnum, 'bid', newstate)
+        bid = sendrcv(pnum, 'bid', newstate)
+        bids[pnum] = bid
+        r.bid(pnum, bid)
 
     lastwinner = playround.startplayer
 
@@ -76,6 +78,10 @@ def playround(rd):
             newstate = GameState(i, trick, tricks)
             send(i, 'trickdone', newstate)
 
+    print "round", rd
+    print "tricks", tricks
+    print "bids", bids
+    print ""
     # assign points
     for k in range(nplayers):
         if tricks[k] == bids[k]:

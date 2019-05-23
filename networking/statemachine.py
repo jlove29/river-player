@@ -4,12 +4,12 @@ import copy
 
 
 
-def remainingDeck(state):
+def remainingDeck(used):
     d = []
-    for i in range(13):
-        for suit in ['Diamonds', 'Hearts', 'Clubs', 'Spades']:
+    for i in range(1, 13):
+        for suit in ['Diamond', 'Heart', 'Club', 'Spade']:
             card = (i, suit)
-            if card not in state.hand or state.roundseen or state.trickseen:
+            if card not in used:
                 d.append(card)
     return d
 
@@ -17,16 +17,16 @@ def remainingDeck(state):
 
 def findopplegals(role, state):
     legals = []
-    cards = state.hand
-    seen = state.roundseen
-    trick = state.trickseen
+    used = state.hand + state.roundseen + state.trickseen
+    d = remainingDeck(used)
 
-    d = remainingDeck(state)
-    possiblehand = random.sample(d, len(cards))
+    tosample = ((2*state.rounds) - len(state.trickseen) + 1)/2
+    possiblehand = random.sample(d, tosample)
 
     fakestate = copy.deepcopy(state)
     fakestate.hand = possiblehand
-    return findlegals(state.player, fakestate)
+    fakestate.player = role
+    return findlegals(role, fakestate)
 
 
 
@@ -51,25 +51,28 @@ def findlegals(role, state):
     return cards
 
 def simulate(role, state, action):
-    print ""
-    print "SIMULATING"
-    print "role", role
-    print "hand", state.hand
-    print "action", action
-    print "trickseen", state.trickseen
     newstate = copy.deepcopy(state)
+    '''
+    print "role", role
+    print "action", action
+    print "me", state.player
+    print "myhand", state.hand
+    print "round seen", state.roundseen
+    print "trick seen", state.trickseen
+    print "num rounds", state.rounds
+    print "rewards", state.rewards
+    print "tricks", state.tricks
+    print "bids", state.bids
+    print ""
+    '''
 
     if role == state.player:
         newstate.hand.remove(action)
     newstate.roundseen.append(action)
     newstate.trickseen.append(action)
     
-    print "newhand", newstate.hand
-    print "newseen", newstate.trickseen
-
     # if trick is done, increment tricks
     if len(newstate.trickseen) == state.nplayers:
-        print "trick is now done"
         # calc winner
         winning = newstate.trickseen[0]
         winner = 0
@@ -86,22 +89,15 @@ def simulate(role, state, action):
                 elif card[1] == winning[1] and card[0] > winning[0]:
                     winning = card
                     winner = c
-        print "winning card", winning
-        print "winner", winner
 
         newstate.tricks[winner] += 1
         newstate.trickseen = []
-        print "old tricks", state.tricks
-        print "new tricks", newstate.tricks
 
         # if round is done, calc rewards
         if len(newstate.roundseen) == (state.nplayers * state.rounds):
-            print "round done"
             rw = -1
             tricks = newstate.tricks[role]
             bids = state.bids[role]
-            print "tricks won", tricks
-            print "bids", bids
             if tricks == bids:
                 if tricks == 0:
                     rw = 5
@@ -110,9 +106,18 @@ def simulate(role, state, action):
             elif tricks > bids:
                 rw = tricks
             newstate.rewards = rw
-            print "old rewards", state.rewards
-            print "new rewards", newstate.rewards
 
+    '''
+    print role
+    print action
+    print newstate.player
+    print newstate.hand
+    print newstate.roundseen
+    print newstate.trickseen
+    print newstate.rounds
+    print newstate.rewards
+    print ""
+    '''
     return newstate
 
 
