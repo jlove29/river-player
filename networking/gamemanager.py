@@ -130,8 +130,9 @@ def go():
     #print points
     return points
 
+
 totalpoints = np.zeros(nplayers)
-n = 1
+n = 10
 for i in range(n):
     points = go()
     for i in range(len(points)):
