@@ -28,12 +28,48 @@ def init(state):
     global nplayers
     nplayers = state.nplayers
 
+def featureExtractor(state): 
+    hand = state.hand
+    oppBid = state.bids[abs(1 - role)]
+    if oppBid < 0:
+        oppBid = round(float(state.rounds) / nplayers)
+
+    featureVector = np.zeros(NUM_FEATURES) 
+    for card in hand:
+        num = card[0]
+        suit = card[1]
+        if suit == state.trump:
+            num += 13 # shift the number down to the trump side of the featureVector
+        featureVector[num - 1] += 1
+
+    featureVector[-1] = oppBid #last one is opponent's bid
+    # print("Trump:" + str(state.trump))
+    # print(hand)
+    # print(featureVector)
+    return featureVector
+
 def bid(state):
     # for now, naive bidding
-    rd = state.rounds
-    return np.ceil(float(rd)/float(nplayers))
+    featureExtractor(state)
+    global featureVector
+
+    featureVector = featureExtractor(state)
+    bid = round(np.dot(featureVector, weights))
+
+    return bid
+
+def updateWeights(state):
+    global weights
+    curBid = round(np.dot(featureVector, weights))
+    # loss = abs(rewards - curBid)
+    sign = np.sign(state.rewards - curBid)
+    print(sign)
+    print(stat.rewards)
+    weights = weights - featureVector * ETA * sign
 
 def rddone(state):
+    updateWeights(state)
+    print(weights)
     #print "My reward was", state[-1]
     return
 
@@ -59,9 +95,10 @@ def move(state):
                 maxcard = card
     return maxcard
 
-    
-
-
+ETA = 0.1 #eta for the gradient descent 
+NUM_FEATURES = 27 # number of features
+weights = np.zeros(NUM_FEATURES) #weights for features
+featureVector = np.zeros(NUM_FEATURES)
 role = 0
 nplayers = 0
 state = None
