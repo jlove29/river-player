@@ -1,14 +1,11 @@
 import sys
 import numpy as np
-import copy
-import random
 from multiprocessing.connection import Listener
 addr = ('localhost', int(sys.argv[1]))
 listener = Listener(addr)
 conn = listener.accept()
 
 import statemachine as sm
-
 
 
 def play(msg):
@@ -34,44 +31,33 @@ def init(state):
 def bid(state):
     # for now, naive bidding
     rd = state.rounds
-    bid = np.ceil(float(rd)/float(nplayers))
-    return bid
+    return np.ceil(float(rd)/float(nplayers))
 
 def rddone(state):
+    #print "My reward was", state[-1]
     return
 
 def move(state):
+    trump = state.trump
+    trick = state.trickseen
     legals = sm.findlegals(role, state)
-    bestaction = legals[0]
-    bestscore = 0
-    for action in legals:
-        newstate = sm.simulate(role, state, action)
-        reward = runcharges(role, newstate, 100)
-        if reward > bestscore:
-            bestscore = reward
-            bestaction = action
-    return bestaction
-
-def runcharges(role, state, numcharges):
-    total = 0
-    for i in range(numcharges):
-        result = depthcharge(role, state)
-        total += result
-    return float(total) / float(numcharges)
-
-
-def depthcharge(role, state):
-    if state.rewards != 0:
-        return max(0, state.rewards)
-    
-    opp = role + 1
-    if opp == nplayers:
-        opp = 0
-    legals = sm.findlegals(opp, state)
-    action = random.choice(legals)
-    newstate = sm.simulate(opp, state, action)
-    return depthcharge(opp, newstate)
-
+    maxcard = legals[0]
+    if len(trick) == 0 or maxcard[1] == trick[0][1]:
+        for card in legals:
+            if card[0] > maxcard[0]:
+                maxcard = card
+        return maxcard
+    for card in legals:
+        if card[1] == trump:
+            if maxcard[1] == trump:
+                if card[0] < maxcard[0]:
+                    maxcard = card
+            else:
+                maxcard = card
+        else:
+            if card[0] < maxcard[0]:
+                maxcard = card
+    return maxcard
 
     
 
