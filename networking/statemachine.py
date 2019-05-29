@@ -20,7 +20,7 @@ def findopplegals(role, state):
     used = state.hand + state.roundseen + state.trickseen
     d = remainingDeck(used)
 
-    tosample = ((2*state.rounds) - len(state.trickseen) + 1)/2
+    tosample = ((state.nplayers*state.rounds) - len(state.trickseen) + 1)/state.nplayers
     possiblehand = random.sample(d, tosample)
 
     fakestate = copy.deepcopy(state)
