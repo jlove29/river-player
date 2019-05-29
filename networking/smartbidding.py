@@ -62,10 +62,13 @@ def updateWeights(state):
     global weights
     curBid = round(np.dot(featureVector, weights))
     # loss = abs(rewards - curBid)
-    sign = np.sign(state.rewards - curBid)
-    print(sign)
-    print(stat.rewards)
-    weights = weights - featureVector * ETA * sign
+    print("Current Bid:", curBid)
+    print("Tricks won:" + str(state.tricks))
+    sign = np.sign(state.tricks - curBid)
+    # print(sign)
+    # print("rewards:")
+    # print(state.tricks)
+    weights = weights + featureVector * ETA * sign
 
 def rddone(state):
     updateWeights(state)
