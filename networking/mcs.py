@@ -32,6 +32,7 @@ def init(state):
 
 def bid(state):
     # for now, naive bidding
+    print state.hand
     rd = state.rounds
     bid = np.ceil(float(rd)/float(nplayers))
     return bid

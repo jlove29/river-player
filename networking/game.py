@@ -2,20 +2,6 @@ import itertools, random
 import numpy as np
 
 
-'''
-State information:
-    phase
-    number of cards in round
-    trump suit
-    cards in hand
-    cards seen
-    cards in current trick
-    number of tricks won by each player
-    player bids
-'''
-
-
-
 class Trick():
     def __init__(self, leader, trump, parent):
         self.parent = parent

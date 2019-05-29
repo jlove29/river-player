@@ -40,7 +40,7 @@ def playround(rd):
     # bid
     for j in range(playround.startplayer, playround.startplayer + nplayers):
         pnum = j % nplayers
-        newstate = GameState(pnum, [rd, trump, [], [], [], bids, nplayers], tricks)
+        newstate = GameState(pnum, [rd, trump, r.getHand(pnum), [], [], bids, nplayers], tricks)
         bid = sendrcv(pnum, 'bid', newstate)
         bids[pnum] = bid
         r.bid(pnum, bid)
@@ -132,7 +132,7 @@ def go():
 
 
 totalpoints = np.zeros(nplayers)
-n = 10
+n = 1
 for i in range(n):
     points = go()
     for i in range(len(points)):
