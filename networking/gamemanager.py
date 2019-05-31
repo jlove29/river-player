@@ -141,7 +141,7 @@ def go():
 
 
 totalpoints = np.zeros(nplayers)
-n = 1000
+n = 2000
 for i in range(n):
     points = go()
     for i in range(len(points)):
