@@ -136,12 +136,12 @@ def go():
 
 
     #print "Final Score:"
-    #print points
+    print points
     return points
 
 
 totalpoints = np.zeros(nplayers)
-n = 2000
+n = 100
 for i in range(n):
     points = go()
     for i in range(len(points)):

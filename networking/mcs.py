@@ -73,9 +73,6 @@ def depthcharge(role, state):
     return depthcharge(opp, newstate)
 
 
-    
-
-
 role = 0
 nplayers = 0
 state = None
