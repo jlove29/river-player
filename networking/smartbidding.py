@@ -28,13 +28,14 @@ def init(state):
     global nplayers
     nplayers = state.nplayers
 
-def featureExtractor(state): 
+def featureExtractor(state):
+    featureVector = np.zeros(NUM_FEATURES) 
     hand = state.hand
     oppBid = state.bids[abs(1 - role)]
     if oppBid < 0:
-        oppBid = round(float(state.rounds) / nplayers)
+        featureVector[len(featureVector)-2] = 1
+        oppBid = 0 #round(float(state.rounds) / nplayers)
 
-    featureVector = np.zeros(NUM_FEATURES) 
     for card in hand:
         num = card[0]
         suit = card[1]
@@ -98,8 +99,8 @@ def move(state):
                 maxcard = card
     return maxcard
 
-ETA = 0.1 #eta for the gradient descent 
-NUM_FEATURES = 27 # number of features
+ETA = 0.01 #eta for the gradient descent 
+NUM_FEATURES = 28 # number of features
 weights = np.zeros(NUM_FEATURES) #weights for features
 featureVector = np.zeros(NUM_FEATURES)
 role = 0

@@ -6,7 +6,7 @@ from multiprocessing.connection import Client
 
 
 nplayers = 2
-maxh = 3
+maxh = 7
 minh = 1
 
 conn1 = Client(('localhost', 7000))
@@ -31,7 +31,7 @@ def playround(rd):
     r.deal()
     trump = r.trump
     tricks = np.zeros(nplayers)
-    bids = np.zeros(nplayers)
+    bids = np.array([-1 for _ in range(nplayers)])
 
     for k in range(nplayers):
         initialstate = GameState(k, [rd, trump, [], [], [], bids, nplayers], tricks)
@@ -90,24 +90,25 @@ def playround(rd):
         newstate = GameState(k, None, tricks[k])
         # print(tricks[k])
         send(k, 'rddone', newstate)
-        '''
+        
         if tricks[k] == bids[k]:
             if tricks[k] == 0:
                 points[k] += 5
-                newstate = GameState(k, None, 5)
-                send(k, 'rddone', newstate)
+                # newstate = GameState(k, None, 5)
+                # send(k, 'rddone', newstate)
             else:
                 points[k] += tricks[k] * 10
-                newstate = GameState(k, None, tricks[k] * 10)
-                send(k, 'rddone', newstate)
+                # newstate = GameState(k, None, tricks[k] * 10)
+                # send(k, 'rddone', newstate)
         elif tricks[k] > bids[k]:
             points[k] += tricks[k]
-            newstate = GameState(k, None, tricks[k])
-            send(k, 'rddone', newstate)
+            # newstate = GameState(k, None, tricks[k])
+            # send(k, 'rddone', newstate)
         else:
-            newstate = GameState(k, None, 0)
-            send(k, 'rddone', newstate)
-        '''
+            pass
+            # newstate = GameState(k, None, 0)
+            # send(k, 'rddone', newstate)
+        
 
     #print points
     #print "\n"
