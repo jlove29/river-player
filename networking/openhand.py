@@ -97,10 +97,11 @@ def findlegals(player, state):
         return legals
     return cards
 
-def simulate(player, state, action):
+def simulate(state, action):
     newstate = copy.deepcopy(state)
 
     #print(newstate.hands)
+    player = state.player
     newstate.hands[player].remove(action)
     newstate.roundseen.append(action)
     newstate.trickseen.append(action)
@@ -126,6 +127,7 @@ def simulate(player, state, action):
 
         newstate.tricks[winner] += 1
         newstate.trickseen = []
+        newstate.player = winner
 
         # if round is done, calc rewards
         if len(newstate.roundseen) == (state.nplayers * state.rounds):
@@ -150,10 +152,13 @@ def simulate(player, state, action):
             elif tricks > bids:
                 opprw = tricks
             newstate.rewards = rw - opprw
+    else:
+        newstate.player = abs(player-1)
 
     return newstate
 
-def minimax(player, state):
+def minimax(state):
+    player = state.player
     if state.hands[player] == []:
         return (None, state.rewards)
     actions = findlegals(player, state)
@@ -161,7 +166,7 @@ def minimax(player, state):
         bestAction = None
         bestVal = float("-inf")
         for a in actions:
-            result = minimax(1, simulate(0, state, a))
+            result = minimax(simulate(state, a))
             if result[1] > bestVal:
                 bestAction = a
                 bestVal = result[1]
@@ -170,14 +175,14 @@ def minimax(player, state):
         worstAction = None
         worstVal = float("inf")
         for a in actions:
-            result = minimax(0, simulate(1, state, a))
+            result = minimax(simulate(state, a))
             if result[1] < worstVal:
                 worstAction = a
                 worstVal = result[1]
         return (worstAction, worstVal)
 
 def move(state):
-    m =  minimax(0, state)
+    m =  minimax(state)
     print(m)
     return m[0]
 
