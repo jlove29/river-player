@@ -132,8 +132,8 @@ def simulate(state, action):
         # if round is done, calc rewards
         if len(newstate.roundseen) == (state.nplayers * state.rounds):
             rw = 0
-            tricks = newstate.tricks[0]
-            bids = state.bids[0]
+            tricks = newstate.tricks[role]
+            bids = state.bids[role]
             if tricks == bids:
                 if tricks == 0:
                     rw = 5
@@ -142,8 +142,8 @@ def simulate(state, action):
             elif tricks > bids:
                 rw = tricks
             opprw = 0
-            tricks = newstate.tricks[1]
-            bids = state.bids[1]
+            tricks = newstate.tricks[abs(role-1)]
+            bids = state.bids[abs(role-1)]
             if tricks == bids:
                 if tricks == 0:
                     opprw = 5
@@ -157,32 +157,40 @@ def simulate(state, action):
 
     return newstate
 
-def minimax(state):
+def minimax(state, alpha, beta):
     player = state.player
     if state.hands[player] == []:
         return (None, state.rewards)
     actions = findlegals(player, state)
-    if player == 0:
+    if player == role:
         bestAction = None
         bestVal = float("-inf")
         for a in actions:
-            result = minimax(simulate(state, a))
-            if result[1] > bestVal:
+            result = minimax(simulate(state, a), alpha, beta)[1]
+            if result >= beta:
+                return (None, result)
+            if result > alpha:
+                alpha = result
+            if result > bestVal:
                 bestAction = a
-                bestVal = result[1]
+                bestVal = result
         return (bestAction, bestVal)
     else:
         worstAction = None
         worstVal = float("inf")
         for a in actions:
-            result = minimax(simulate(state, a))
-            if result[1] < worstVal:
+            result = minimax(simulate(state, a), alpha, beta)[1]
+            if result <= alpha:
+                return (None, result)
+            if result < beta:
+                beta = result
+            if result < worstVal:
                 worstAction = a
-                worstVal = result[1]
+                worstVal = result
         return (worstAction, worstVal)
 
 def move(state):
-    m =  minimax(state)
+    m =  minimax(state, float("-inf"), float("inf"))
     print(m)
     return m[0]
 

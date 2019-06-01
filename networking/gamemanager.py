@@ -6,7 +6,7 @@ from multiprocessing.connection import Client
 
 
 nplayers = 2
-maxh = 6
+maxh = 7
 minh = 1
 
 conn1 = Client(('localhost', 7000))
@@ -141,7 +141,7 @@ def go():
 
 
 totalpoints = np.zeros(nplayers)
-n = 100
+n = 1
 p1wins = 0
 for i in range(n):
     points = go()
