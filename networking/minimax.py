@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import copy
 import random
+import scipy.stats
 from multiprocessing.connection import Listener
 addr = ('localhost', int(sys.argv[1]))
 listener = Listener(addr)
@@ -80,6 +81,24 @@ def rddone(state):
     # np.save('doubledummy_weights.npy', weights)
     #print "My reward was", state[-1]
     return
+
+def remainingDeck(state):
+    used = state.hand + state.roundseen + state.trickseen
+    d = []
+    for i in range(1, 13):
+        for suit in ['Diamond', 'Heart', 'Club', 'Spade']:
+            card = (i, suit)
+            if card not in used:
+                d.append(card)
+    return d
+
+def fakeHands(n, state):
+    hands = []
+    remaining = remainingDeck(state)
+    numCards = len(state.hands[abs(role-1)])
+    for _ in range(n):
+        hands.append(random.sample(remaining, numCards))
+    return hands
 
 def scoreDiff(tricks, bids):
     rw = 0
@@ -215,9 +234,16 @@ def minimax(state, alpha, beta):
         return (worstAction, worstVal)
 
 def move(state):
-    m =  minimax(state, float("-inf"), float("inf"))
-    #print(m)
-    return m[0]
+    possHands = fakeHands(10, state)
+    fakeState = copy.deepcopy(state)
+    possActions = []
+    for fh in possHands:
+        fakeState.hands[abs(role-1)] = fh
+        possActions.append(minimax(state, float("-inf"), float("inf"))[0])
+    print(possActions)
+    m = scipy.stats.mode(possActions)
+    print(m)
+    return m
 
 
 

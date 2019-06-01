@@ -6,7 +6,7 @@ from multiprocessing.connection import Client
 
 
 nplayers = 2
-maxh = 7
+maxh = 4
 minh = 1
 
 conn1 = Client(('localhost', 7000))
