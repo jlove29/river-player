@@ -6,7 +6,7 @@ from multiprocessing.connection import Client
 
 
 nplayers = 2
-maxh = 7
+maxh = 6
 minh = 1
 
 conn1 = Client(('localhost', 7000))
@@ -34,13 +34,13 @@ def playround(rd):
     bids = np.array([-1 for _ in range(nplayers)])
 
     for k in range(nplayers):
-        initialstate = GameState(k, [rd, trump, [], [], [], bids, nplayers], tricks)
+        initialstate = GameState(k, [rd, trump, [], [], [], bids, nplayers, []], tricks)
         send(k, 'init', initialstate)
 
     # bid
     for j in range(playround.startplayer, playround.startplayer + nplayers):
         pnum = j % nplayers
-        newstate = GameState(pnum, [rd, trump, r.getHand(pnum), [], [], bids, nplayers], tricks)
+        newstate = GameState(pnum, [rd, trump, r.getHand(pnum), [], [], bids, nplayers, r.hands], tricks)
         bid = sendrcv(pnum, 'bid', newstate)
         bids[pnum] = bid
         r.bid(pnum, bid)
@@ -141,14 +141,17 @@ def go():
 
 
 totalpoints = np.zeros(nplayers)
-n = 100
+n = 1
+p1wins = 0
 for i in range(n):
     points = go()
     for i in range(len(points)):
         totalpoints[i] += (float(points[i])/n)
+    if points[0] > points[1]:
+            p1wins += 1.0/n
 # close connections
 for p in range(nplayers):
     send(p, 'close', None)
 
-
+print p1wins
 print totalpoints

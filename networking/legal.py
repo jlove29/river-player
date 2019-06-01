@@ -1,4 +1,6 @@
 import sys
+import numpy as np
+import random
 from multiprocessing.connection import Listener
 addr = ('localhost', int(sys.argv[1]))
 listener = Listener(addr)
@@ -7,22 +9,25 @@ conn = listener.accept()
 import statemachine
 
 
-def play(state):
-    action = state[0]
+def play(msg):
+    action = msg[0]
+    state = msg[1]
     if action == 'init':
-        return init(state[1:])
+        return init(state)
     if action == 'bid':
-        return bid(state[1:])
+        return bid(state)
     if action == 'move':
-        return move(state[1:])
+        return move(state)
     if action == 'trickdone':
         return
     if action == 'rddone':
-        return rddone(state[1:])
+        return rddone(state)
 
 def init(state):
     global role
-    role = state[0]
+    role = state.player
+    global nplayers
+    nplayers = state.nplayers
 
 def bid(state):
     # for now, naive bidding
@@ -35,7 +40,7 @@ def bid(state):
             count += 1
     return count
     '''
-    rd = state[1]
+    rd = state.rounds
     return float(rd)/2.
 
 def rddone(state):
@@ -44,17 +49,18 @@ def rddone(state):
 
 def move(state):
     legals = statemachine.findlegals(role, state)
-    return legals[0]
+    return random.choice(legals)
 
 
 role = 0
+nplayers = 0
 state = None
 while True:
-    state = conn.recv()
-    retval = play(state)
+    msg = conn.recv()
+    retval = play(msg)
     if retval is not None:
         conn.send(retval)
-    if state[0] == 'close':
+    if msg[0] == 'close':
         conn.close()
         break
 

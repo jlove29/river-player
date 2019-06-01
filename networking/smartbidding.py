@@ -71,9 +71,9 @@ def updateWeights(state):
     weights = weights + featureVector * ETA * sign
 
 def rddone(state):
-    updateWeights(state)
+    #updateWeights(state)
     print(weights)
-    np.save('smartbidding_weights.npy', weights)
+    #np.save('smartbidding_weights.npy', weights)
     #print "My reward was", state[-1]
     return
 
@@ -99,7 +99,7 @@ def move(state):
                 maxcard = card
     return maxcard
 
-ETA = 0.001 #eta for the gradient descent 
+ETA = 0.01 #eta for the gradient descent 
 NUM_FEATURES = 28 # number of features
 try:
     weights = np.load('smartbidding_weights.npy')

@@ -15,6 +15,7 @@ class GameState():
             self.trickseen = trick[4]
             self.bids = trick[5]
             self.nplayers = trick[6]
+            self.hands = trick[7]
         elif trick is not None:
             self.rounds = trick.parent.height
             self.trump = trick.trump
@@ -23,4 +24,5 @@ class GameState():
             self.trickseen = trick.seen
             self.bids = trick.parent.bids
             self.nplayers = trick.parent.parent.nplayers
+            self.hands = trick.parent.hands
 
