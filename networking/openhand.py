@@ -31,34 +31,64 @@ def init(state):
     global nplayers
     nplayers = state.nplayers
 
-def featureExtractor(state):
-    featureVector = np.zeros(NUM_FEATURES) 
-    hand = state.hand
-    oppBid = state.bids[abs(1 - role)]
-    if oppBid < 0:
-        featureVector[len(featureVector)-2] = 1
-        oppBid = 0 #round(float(state.rounds) / nplayers)
+def bidMinimax(state, alpha, beta):
+    player = state.player
+    if state.hands[player] == []:
+        bestBid = 0
+        bestScore = float("-inf")
+        if state.bids[abs(role-1)] == -1:
+            for mybid in range(state.rounds+1):
+                worstScore = float("inf")
+                for oppbid in range(state.rounds+1):
+                    bids = [None, None]
+                    bids[role] = mybid
+                    bids[abs(role-1)] = oppbid
+                    worstScore = scoreDiff(state.tricks, bids)
+                if worstScore > bestScore:
+                    bestBid = mybid
+                    bestScore = worstScore
+        else:
+            for mybid in range(state.rounds+1):
+                bids = list(state.bids)
+                bids[role] = mybid
+                score = scoreDiff(state.tricks, bids)
+                if  score > bestScore:
+                    bestBid = mybid
+                    bestScore = score
+        return (bestBid, bestScore)
 
-    for card in hand:
-        num = card[0]
-        suit = card[1]
-        if suit == state.trump:
-            num += 13 # shift the number down to the trump side of the featureVector
-        featureVector[num - 1] += 1
-
-    featureVector[-1] = oppBid #last one is opponent's bid
-    # print("Trump:" + str(state.trump))
-    # print(hand)
-    # print(featureVector)
-    return featureVector
+    actions = findlegals(state)
+    if player == role:
+        bestBid = None
+        bestVal = float("-inf")
+        for a in actions:
+            result = bidMinimax(simulate(state, a), alpha, beta)
+            if result[1] >= beta:
+                return (None, result[1])
+            if result[1] > alpha:
+                alpha = result[1]
+            if result[1] > bestVal:
+                bestAction = result[0]
+                bestVal = result[1]
+        return (bestAction, bestVal)
+    else:
+        worstAction = None
+        worstVal = float("inf")
+        for a in actions:
+            result = bidMinimax(simulate(state, a), alpha, beta)
+            if result[1] <= alpha:
+                return (None, result[1])
+            if result[1] < beta:
+                beta = result[1]
+            if result[1] < worstVal:
+                worstAction = result[0]
+                worstVal = result[1]
+        return (worstAction, worstVal)
 
 def bid(state):
-    global featureVector
-
-    featureVector = featureExtractor(state)
-    bid = round(np.dot(featureVector, weights))
-
-    return bid
+    bid = bidMinimax(state, float("-inf"), float("inf"))
+    print(bid)
+    return bid[0]
 
 def updateWeights(state):
     global weights
@@ -164,7 +194,7 @@ def simulate(state, action):
 
 def minimax(state, alpha, beta):
     global solvedPositions
-    s = (state.player, str(state.hands), str(state.tricks)) #fake state for memoization
+    s = (state.player, str(state.hands), str(state.tricks), str(state.bids)) #fake state for memoization
     if s in solvedPositions:
         return solvedPositions[s]
     player = state.player
@@ -221,14 +251,6 @@ def move(state):
 
 
 
-
-ETA = 0.01 #eta for the gradient descent 
-NUM_FEATURES = 28 # number of features
-try:
-    weights = np.load('smartbidding_weights.npy')
-except:
-    weights = np.zeros(NUM_FEATURES) #weights for features
-featureVector = np.zeros(NUM_FEATURES)
 role = 0
 nplayers = 0
 state = None
@@ -237,7 +259,6 @@ while True:
     msg = conn.recv()
     retval = play(msg)
     if retval is not None:
-        print(retval)
         conn.send(retval)
     if msg[0] == 'close':
         conn.close()

@@ -82,7 +82,7 @@ def rddone(state):
     # print(weights)
     # np.save('doubledummy_weights.npy', weights)
     #print "My reward was", state[-1]
-    print
+    #print
     return
 
 def remainingDeck(state):
@@ -255,7 +255,20 @@ def move(state):
         # possActions.append(minimax(state, float("-inf"), float("inf"))[0])
     # print(possActions)
     # print(actionsDict)
+    oracle = minimax(state, float("-inf"), float("inf"))
     m = max(actionsDict.iteritems(), key = operator.itemgetter(1))[0]
+    bestOutcome = minimax(simulate(state, m), float("-inf"), float("inf"))
+    # print(oracle)
+    ourOutcome = (m, bestOutcome[1])
+    # print(ourOutcome)
+    global ideal
+    global total_moves
+    total_moves += 1
+    if oracle[1] == bestOutcome[1]:
+        ideal += 1
+    else:
+        print(oracle[0])
+        print(actionsDict)
     # m = scipy.stats.mode(possActions)
     # print(m)
     return m
@@ -264,6 +277,8 @@ def move(state):
 
 
     
+ideal = 0
+total_moves = 0
 
 ETA = 0.01 #eta for the gradient descent 
 NUM_FEATURES = 28 # number of features
@@ -283,6 +298,8 @@ while True:
         conn.send(retval)
     if msg[0] == 'close':
         conn.close()
+        print(float(ideal)/total_moves)
+        print(total_moves)
         #np.save('doubledummy_weights.npy', weights)
         break
 
