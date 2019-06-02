@@ -125,7 +125,7 @@ def findlegals(state):
 def simulate(state, action):
     newstate = copy.deepcopy(state)
 
-    #print(newstate.hands)
+    # print(newstate.hands)
     player = state.player
     newstate.hands[player].remove(action)
     newstate.roundseen.append(action)
@@ -216,13 +216,11 @@ def minimax(state, alpha, beta):
 
 def move(state):
     m =  minimax(state, float("-inf"), float("inf"))
-    #print(m)
+    print(m)
     return m[0]
 
 
 
-
-    
 
 ETA = 0.01 #eta for the gradient descent 
 NUM_FEATURES = 28 # number of features
@@ -239,6 +237,7 @@ while True:
     msg = conn.recv()
     retval = play(msg)
     if retval is not None:
+        print(retval)
         conn.send(retval)
     if msg[0] == 'close':
         conn.close()

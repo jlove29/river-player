@@ -147,7 +147,7 @@ def findlegals(state):
 def simulate(state, action):
     newstate = copy.deepcopy(state)
 
-    #print(newstate.hands)
+    # print(newstate.hands)
     player = state.player
     newstate.hands[player].remove(action)
     newstate.roundseen.append(action)
@@ -237,20 +237,27 @@ def minimax(state, alpha, beta):
         return (worstAction, worstVal)
 
 def move(state):
-    possHands = fakeHands(5, state)
-    print(possHands)
+    global solvedPositions
+    possHands = fakeHands(10, state)
+    # print(possHands)
     fakeState = copy.deepcopy(state)
     actionsDict = collections.defaultdict(int)
-    # possActions = []
+    # possActions = []6
     for fh in possHands:
+        # print
         fakeState.hands[abs(role-1)] = fh
-        actionsDict[minimax(state, float("-inf"), float("inf"))[0]] += 1
+        # print(fakeState.hands)
+        # print(fakeState.trump)
+        goodMove = minimax(fakeState, float("-inf"), float("inf"))[0]
+        solvedPositions = dict()
+        # print(goodMove)
+        actionsDict[goodMove] += 1
         # possActions.append(minimax(state, float("-inf"), float("inf"))[0])
     # print(possActions)
     # print(actionsDict)
     m = max(actionsDict.iteritems(), key = operator.itemgetter(1))[0]
     # m = scipy.stats.mode(possActions)
-    print(m)
+    # print(m)
     return m
 
 
