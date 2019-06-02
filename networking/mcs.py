@@ -10,6 +10,24 @@ conn = listener.accept()
 import statemachine as sm
 
 
+def featureExtractor(state):
+    featureVector = np.zeros(NUM_FEATURES) 
+    hand = state.hand
+    oppBid = state.bids[abs(1 - role)]
+    if oppBid < 0:
+        featureVector[len(featureVector)-2] = 1
+        oppBid = 0 #round(float(state.rounds) / nplayers)
+
+    for card in hand:
+        num = card[0]
+        suit = card[1]
+        if suit == state.trump:
+            num += 13 # shift the number down to the trump side of the featureVector
+        featureVector[num - 1] += 1
+
+    featureVector[-1] = oppBid #last one is opponent's bid
+    return featureVector
+
 
 def play(msg):
     action = msg[0]
@@ -32,13 +50,35 @@ def init(state):
     nplayers = state.nplayers
 
 def bid(state):
-    # for now, naive bidding
-    rd = state.rounds
-    bid = np.ceil(float(rd)/float(nplayers))
+    featureExtractor(state)
+    global featureVector
+
+    featureVector = featureExtractor(state)
+    bid = round(np.dot(featureVector, weights))
+
     return bid
 
+def updateWeights(state):
+    global weights
+    curBid = round(np.dot(featureVector, weights))
+    # loss = abs(rewards - curBid)
+    print "Current Bid: ", curBid
+    print "Tricks won: ", state.tricks
+    print ""
+    sign = np.sign(state.tricks - curBid)
+    # print(sign)
+    # print("rewards:")
+    # print(state.tricks)
+    weights = weights + featureVector * ETA * sign
+
+
 def rddone(state):
+    updateWeights(state)
+    #print(weights)
+    np.save('smartbidding_mcs_weights.npy', weights)
+    #print "My reward was", state[-1]
     return
+
 
 def move(state):
     legals = sm.findlegals(role, state)
@@ -46,7 +86,7 @@ def move(state):
     bestscore = 0
     for action in legals:
         newstate = sm.simulate(role, state, action)
-        reward = runcharges(role, newstate, 100)
+        reward = runcharges(role, newstate, 50)
         if reward > bestscore:
             bestscore = reward
             bestaction = action
@@ -73,6 +113,13 @@ def depthcharge(role, state):
     return depthcharge(opp, newstate)
 
 
+ETA = 0.01 #eta for the gradient descent 
+NUM_FEATURES = 28 # number of features
+try:
+    weights = np.load('smartbidding_weights.npy')
+except:
+    weights = np.zeros(NUM_FEATURES) #weights for features
+featureVector = np.zeros(NUM_FEATURES)
 role = 0
 nplayers = 0
 state = None
@@ -83,6 +130,9 @@ while True:
         conn.send(retval)
     if msg[0] == 'close':
         conn.close()
+        #np.save('smartbidding_weights.npy', weights)
         break
 
+
 conn.close()
+
