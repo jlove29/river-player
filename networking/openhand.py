@@ -87,7 +87,7 @@ def bidMinimax(state, alpha, beta):
 
 def bid(state):
     bid = bidMinimax(state, float("-inf"), float("inf"))
-    print(bid)
+    #print(bid)
     return bid[0]
 
 def updateWeights(state):
@@ -246,7 +246,7 @@ def minimax(state, alpha, beta):
 
 def move(state):
     m =  minimax(state, float("-inf"), float("inf"))
-    print(m)
+    #print(m)
     return m[0]
 
 
@@ -262,7 +262,6 @@ while True:
         conn.send(retval)
     if msg[0] == 'close':
         conn.close()
-        #np.save('doubledummy_weights.npy', weights)
         break
 
 conn.close()

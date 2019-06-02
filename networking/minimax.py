@@ -33,6 +33,81 @@ def init(state):
     role = state.player
     global nplayers
     nplayers = state.nplayers
+'''
+def bidMinimax(state, alpha, beta):
+    player = state.player
+    if state.hands[player] == []:
+        bestBid = 0
+        bestScore = float("-inf")
+        if state.bids[abs(role-1)] == -1:
+            for mybid in range(state.rounds+1):
+                worstScore = float("inf")
+                for oppbid in range(state.rounds+1):
+                    bids = [None, None]
+                    bids[role] = mybid
+                    bids[abs(role-1)] = oppbid
+                    worstScore = scoreDiff(state.tricks, bids)
+                if worstScore > bestScore:
+                    bestBid = mybid
+                    bestScore = worstScore
+        else:
+            for mybid in range(state.rounds+1):
+                bids = list(state.bids)
+                bids[role] = mybid
+                score = scoreDiff(state.tricks, bids)
+                if  score > bestScore:
+                    bestBid = mybid
+                    bestScore = score
+        return (bestBid, bestScore)
+
+    actions = findlegals(state)
+    if player == role:
+        bestBid = None
+        bestVal = float("-inf")
+        for a in actions:
+            result = bidMinimax(simulate(state, a), alpha, beta)
+            if result[1] >= beta:
+                return (None, result[1])
+            if result[1] > alpha:
+                alpha = result[1]
+            if result[1] > bestVal:
+                bestAction = result[0]
+                bestVal = result[1]
+        return (bestAction, bestVal)
+    else:
+        worstAction = None
+        worstVal = float("inf")
+        for a in actions:
+            result = bidMinimax(simulate(state, a), alpha, beta)
+            if result[1] <= alpha:
+                return (None, result[1])
+            if result[1] < beta:
+                beta = result[1]
+            if result[1] < worstVal:
+                worstAction = result[0]
+                worstVal = result[1]
+        return (worstAction, worstVal)
+
+def bid(state):
+    possHands = fakeHands(200, state)
+    fakeState = copy.deepcopy(state)
+    bidsDict = collections.defaultdict(int)
+    for fh in possHands:
+        fakeState.hands[abs(role-1)] = fh
+        goodBid = bidMinimax(fakeState, float("-inf"), float("inf"))[0]
+        bidsDict[goodBid] += 1
+    oracle = bidMinimax(state, float("-inf"), float("inf"))[0]
+    bid = max(bidsDict.iteritems(), key = operator.itemgetter(1))[0]
+    global ideal
+    global total_moves
+    total_moves += 1
+    if oracle == bid:
+        ideal += 1
+    else:
+        print(oracle)
+        print(bidsDict)
+    return bid
+'''
 
 def featureExtractor(state):
     featureVector = np.zeros(NUM_FEATURES) 
@@ -56,6 +131,7 @@ def featureExtractor(state):
     return featureVector
 
 def bid(state):
+    featureExtractor(state)
     global featureVector
 
     featureVector = featureExtractor(state)
@@ -78,11 +154,8 @@ def updateWeights(state):
 def rddone(state):
     global solvedPositions
     solvedPositions = dict()
-    # updateWeights(state)
-    # print(weights)
-    # np.save('doubledummy_weights.npy', weights)
-    #print "My reward was", state[-1]
-    #print
+    updateWeights(state)
+    print(weights)
     return
 
 def remainingDeck(state):
@@ -239,38 +312,25 @@ def minimax(state, alpha, beta):
 def move(state):
     global solvedPositions
     possHands = fakeHands(10, state)
-    # print(possHands)
     fakeState = copy.deepcopy(state)
     actionsDict = collections.defaultdict(int)
-    # possActions = []6
     for fh in possHands:
-        # print
         fakeState.hands[abs(role-1)] = fh
-        # print(fakeState.hands)
-        # print(fakeState.trump)
         goodMove = minimax(fakeState, float("-inf"), float("inf"))[0]
         solvedPositions = dict()
-        # print(goodMove)
         actionsDict[goodMove] += 1
-        # possActions.append(minimax(state, float("-inf"), float("inf"))[0])
-    # print(possActions)
-    # print(actionsDict)
-    oracle = minimax(state, float("-inf"), float("inf"))
+    # oracle = minimax(state, float("-inf"), float("inf"))
     m = max(actionsDict.iteritems(), key = operator.itemgetter(1))[0]
-    bestOutcome = minimax(simulate(state, m), float("-inf"), float("inf"))
-    # print(oracle)
-    ourOutcome = (m, bestOutcome[1])
-    # print(ourOutcome)
-    global ideal
-    global total_moves
-    total_moves += 1
-    if oracle[1] == bestOutcome[1]:
-        ideal += 1
-    else:
-        print(oracle[0])
-        print(actionsDict)
-    # m = scipy.stats.mode(possActions)
-    # print(m)
+    # bestOutcome = minimax(simulate(state, m), float("-inf"), float("inf"))
+    # ourOutcome = (m, bestOutcome[1])
+    # global ideal
+    # global total_moves
+    # total_moves += 1
+    # if oracle[1] == bestOutcome[1]:
+    #     ideal += 1
+    # else:
+    #     print(oracle[0])
+    #     print(actionsDict)
     return m
 
 
@@ -280,10 +340,10 @@ def move(state):
 ideal = 0
 total_moves = 0
 
-ETA = 0.01 #eta for the gradient descent 
+ETA = 0.001 #eta for the gradient descent 
 NUM_FEATURES = 28 # number of features
 try:
-    weights = np.load('smartbidding_weights.npy')
+    weights = np.load('minimax_weights.npy')
 except:
     weights = np.zeros(NUM_FEATURES) #weights for features
 featureVector = np.zeros(NUM_FEATURES)
@@ -298,9 +358,9 @@ while True:
         conn.send(retval)
     if msg[0] == 'close':
         conn.close()
-        print(float(ideal)/total_moves)
-        print(total_moves)
-        #np.save('doubledummy_weights.npy', weights)
+        #print(float(ideal)/total_moves)
+        #print(total_moves)
+        np.save('minimax_weights.npy', weights)
         break
 
 conn.close()
