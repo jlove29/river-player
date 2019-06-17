@@ -6,6 +6,7 @@ listener = Listener(addr)
 conn = listener.accept()
 
 import statemachine as sm
+import oracle
 
 
 def play(msg):
@@ -56,6 +57,13 @@ def bid(state):
     featureVector = featureExtractor(state)
     bid = round(np.dot(featureVector, weights))
 
+    optimal = oracle.bidMinimax(state, float("-inf"), float("inf"))[0]
+    global ideal_bids
+    global total_bids
+    total_bids += 1
+    if optimal == bid:
+        ideal_bids += 1
+
     return bid
 
 def updateWeights(state):
@@ -86,18 +94,32 @@ def move(state):
         for card in legals:
             if card[0] > maxcard[0]:
                 maxcard = card
-        return maxcard
-    for card in legals:
-        if card[1] == trump:
-            if maxcard[1] == trump:
-                if card[0] < maxcard[0]:
+    else:
+        for card in legals:
+            if card[1] == trump:
+                if maxcard[1] == trump:
+                    if card[0] < maxcard[0]:
+                        maxcard = card
+                else:
                     maxcard = card
             else:
-                maxcard = card
-        else:
-            if card[0] < maxcard[0]:
-                maxcard = card
+                if card[0] < maxcard[0]:
+                    maxcard = card
+
+    optimal = oracle.minimax(state, float("-inf"), float("inf"))
+    bestOutcome = oracle.minimax(oracle.simulate(state, maxcard), float("-inf"), float("inf"))
+    global ideal_moves
+    global total_moves
+    total_moves += 1
+    if optimal[1] == bestOutcome[1]:
+        ideal_moves += 1
+
     return maxcard
+
+ideal_bids = 0
+total_bids = 0
+ideal_moves = 0
+total_moves = 0
 
 ETA = 0.01 #eta for the gradient descent 
 NUM_FEATURES = 28 # number of features
@@ -116,6 +138,8 @@ while True:
         conn.send(retval)
     if msg[0] == 'close':
         conn.close()
+        print("Optimal Bid Rate: " + str(float(ideal_bids)/total_bids))
+        print("Optimal Move Rate: " + str(float(ideal_moves)/total_moves))
         np.save('smartbidding_weights.npy', weights)
         break
 

@@ -7,6 +7,7 @@ listener = Listener(addr)
 conn = listener.accept()
 
 import statemachine
+import oracle
 
 
 def play(msg):
@@ -41,7 +42,16 @@ def bid(state):
     return count
     '''
     rd = state.rounds
-    return float(rd)/2.
+    bid = float(rd)/2
+
+    optimal = oracle.bidMinimax(state, float("-inf"), float("inf"))[0]
+    global ideal_bids
+    global total_bids
+    total_bids += 1
+    if optimal == bid:
+        ideal_bids += 1
+
+    return bid
 
 def rddone(state):
     #print "My reward was", state[-1]
@@ -49,8 +59,22 @@ def rddone(state):
 
 def move(state):
     legals = statemachine.findlegals(role, state)
-    return random.choice(legals)
+    move = random.choice(legals)
 
+    optimal = oracle.minimax(state, float("-inf"), float("inf"))
+    bestOutcome = oracle.minimax(oracle.simulate(state, move), float("-inf"), float("inf"))
+    global ideal_moves
+    global total_moves
+    total_moves += 1
+    if optimal[1] == bestOutcome[1]:
+        ideal_moves += 1
+
+    return move
+
+ideal_bids = 0
+total_bids = 0
+ideal_moves = 0
+total_moves = 0
 
 role = 0
 nplayers = 0
@@ -62,6 +86,8 @@ while True:
         conn.send(retval)
     if msg[0] == 'close':
         conn.close()
+        print("Optimal Bid Rate: " + str(float(ideal_bids)/total_bids))
+        print("Optimal Move Rate: " + str(float(ideal_moves)/total_moves))
         break
 
 conn.close()

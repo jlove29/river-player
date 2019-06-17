@@ -2,37 +2,9 @@ import sys
 import numpy as np
 import copy
 import random
-import collections
-import operator
-# import scipy.stats
-from multiprocessing.connection import Listener
-addr = ('localhost', int(sys.argv[1]))
-listener = Listener(addr)
-conn = listener.accept()
 
-import oracle
+role = 0
 
-
-def play(msg):
-    action = msg[0]
-    state = msg[1]
-    if action == 'init':
-        return init(state)
-    if action == 'bid':
-        return bid(state)
-    if action == 'move':
-        return move(state)
-    if action == 'trickdone':
-        return
-    if action == 'rddone':
-        return rddone(state)
-
-def init(state):
-    global role
-    role = state.player
-    global nplayers
-    nplayers = state.nplayers
-'''
 def bidMinimax(state, alpha, beta):
     player = state.player
     if state.hands[player] == []:
@@ -86,103 +58,6 @@ def bidMinimax(state, alpha, beta):
                 worstAction = result[0]
                 worstVal = result[1]
         return (worstAction, worstVal)
-
-def bid(state):
-    possHands = fakeHands(200, state)
-    fakeState = copy.deepcopy(state)
-    bidsDict = collections.defaultdict(int)
-    for fh in possHands:
-        fakeState.hands[abs(role-1)] = fh
-        goodBid = bidMinimax(fakeState, float("-inf"), float("inf"))[0]
-        bidsDict[goodBid] += 1
-    oracle = bidMinimax(state, float("-inf"), float("inf"))[0]
-    bid = max(bidsDict.iteritems(), key = operator.itemgetter(1))[0]
-    global ideal
-    global total_moves
-    total_moves += 1
-    if oracle == bid:
-        ideal += 1
-    else:
-        print(oracle)
-        print(bidsDict)
-    return bid
-'''
-
-def featureExtractor(state):
-    featureVector = np.zeros(NUM_FEATURES) 
-    hand = state.hand
-    oppBid = state.bids[abs(1 - role)]
-    if oppBid < 0:
-        featureVector[len(featureVector)-2] = 1
-        oppBid = 0 #round(float(state.rounds) / nplayers)
-
-    for card in hand:
-        num = card[0]
-        suit = card[1]
-        if suit == state.trump:
-            num += 13 # shift the number down to the trump side of the featureVector
-        featureVector[num - 1] += 1
-
-    featureVector[-1] = oppBid #last one is opponent's bid
-    # print("Trump:" + str(state.trump))
-    # print(hand)
-    # print(featureVector)
-    return featureVector
-
-def bid(state):
-    if state.bids[abs(1 - role)] < 0 and state.rounds == 1:
-        return 1
-    featureExtractor(state)
-    global featureVector
-
-    featureVector = featureExtractor(state)
-    bid = round(np.dot(featureVector, weights))
-
-    optimal = oracle.bidMinimax(state, float("-inf"), float("inf"))[0]
-    global ideal_bids
-    global total_bids
-    total_bids += 1
-    if optimal == bid:
-        ideal_bids += 1
-
-    return bid
-
-def updateWeights(state):
-    global weights
-    curBid = round(np.dot(featureVector, weights))
-    # loss = abs(rewards - curBid)
-    # print("Current Bid:", curBid)
-    # print("Tricks won:" + str(state.tricks))
-    sign = np.sign(state.tricks - curBid)
-    # print(sign)
-    # print("rewards:")
-    # print(state.tricks)
-    weights = weights + featureVector * ETA * sign
-
-def rddone(state):
-    global solvedPositions
-    solvedPositions = dict()
-    #updateWeights(state)
-    #print(weights)
-    return
-
-def remainingDeck(state):
-    used = state.hand + state.roundseen + state.trickseen
-    d = []
-    for i in range(1, 13):
-        for suit in ['Diamond', 'Heart', 'Club', 'Spade']:
-            card = (i, suit)
-            if card not in used:
-                d.append(card)
-    return d
-
-def fakeHands(n, state):
-    hands = []
-    remaining = remainingDeck(state)
-    numCards = len(state.hands[abs(role-1)])
-    for _ in range(n):
-        hands.append(random.sample(remaining, numCards))
-    return hands
 
 def scoreDiff(tricks, bids):
     rw = 0
@@ -266,10 +141,6 @@ def simulate(state, action):
     return newstate
 
 def minimax(state, alpha, beta):
-    global solvedPositions
-    s = (state.player, str(state.hands), str(state.tricks)) #fake state for memoization
-    if s in solvedPositions:
-        return solvedPositions[s]
     player = state.player
     if state.hands[player] == []:
         return (None, state.rewards)
@@ -298,7 +169,6 @@ def minimax(state, alpha, beta):
                 bestVal = result
                 if result == maxPossible:
                     break
-        solvedPositions[s] = (bestAction, bestVal)
         return (bestAction, bestVal)
     else:
         worstAction = None
@@ -314,63 +184,4 @@ def minimax(state, alpha, beta):
                 worstVal = result
                 if result == minPossible:
                     break
-        solvedPositions[s] = (worstAction, worstVal)
         return (worstAction, worstVal)
-
-def move(state):
-    global solvedPositions
-    possHands = fakeHands(10, state)
-    fakeState = copy.deepcopy(state)
-    actionsDict = collections.defaultdict(float)
-    for fh in possHands:
-        fakeState.hands[abs(role-1)] = fh
-        goodMove = minimax(fakeState, float("-inf"), float("inf"))[0]
-        solvedPositions = dict()
-        handValue = np.dot(featureExtractor(fakeState), weights)
-        diff = (handValue - (state.bids[abs(role-1)] - state.tricks[abs(role-1)]))
-        actionsDict[goodMove] += -abs(diff)
-    #print(actionsDict)
-    m = max(actionsDict.iteritems(), key = operator.itemgetter(1))[0]
-
-    optimal = oracle.minimax(state, float("-inf"), float("inf"))
-    bestOutcome = oracle.minimax(oracle.simulate(state, m), float("-inf"), float("inf"))
-    global ideal_moves
-    global total_moves
-    total_moves += 1
-    if optimal[1] == bestOutcome[1]:
-        ideal_moves += 1
-
-    return m
-
-
-
-
-ideal_bids = 0
-total_bids = 0
-ideal_moves = 0
-total_moves = 0
-
-ETA = 0.001 #eta for the gradient descent 
-NUM_FEATURES = 28 # number of features
-try:
-    weights = np.load('minimax_weights.npy')
-except:
-    weights = np.zeros(NUM_FEATURES) #weights for features
-featureVector = np.zeros(NUM_FEATURES)
-role = 0
-nplayers = 0
-state = None
-solvedPositions = dict()
-while True:
-    msg = conn.recv()
-    retval = play(msg)
-    if retval is not None:
-        conn.send(retval)
-    if msg[0] == 'close':
-        conn.close()
-        print("Optimal Bid Rate: " + str(float(ideal_bids)/total_bids))
-        print("Optimal Move Rate: " + str(float(ideal_moves)/total_moves))
-        np.save('minimax_weights.npy', weights)
-        break
-
-conn.close()

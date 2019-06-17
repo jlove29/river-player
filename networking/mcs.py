@@ -8,6 +8,7 @@ listener = Listener(addr)
 conn = listener.accept()
 
 import statemachine as sm
+import oracle
 
 
 def featureExtractor(state):
@@ -86,10 +87,19 @@ def move(state):
     bestscore = 0
     for action in legals:
         newstate = sm.simulate(role, state, action)
-        reward = runcharges(role, newstate, 50)
+        reward = runcharges(role, newstate, 100)
         if reward > bestscore:
             bestscore = reward
             bestaction = action
+
+    optimal = oracle.minimax(state, float("-inf"), float("inf"))
+    bestOutcome = oracle.minimax(oracle.simulate(state, bestaction), float("-inf"), float("inf"))
+    global ideal_moves
+    global total_moves
+    total_moves += 1
+    if optimal[1] == bestOutcome[1]:
+        ideal_moves += 1
+
     return bestaction
 
 def runcharges(role, state, numcharges):
@@ -112,6 +122,8 @@ def depthcharge(role, state):
     newstate = sm.simulate(opp, state, action)
     return depthcharge(opp, newstate)
 
+ideal_moves = 0
+total_moves = 0
 
 ETA = 0.01 #eta for the gradient descent 
 NUM_FEATURES = 28 # number of features
@@ -130,6 +142,7 @@ while True:
         conn.send(retval)
     if msg[0] == 'close':
         conn.close()
+        print("Optimal Move Rate: " + str(float(ideal_moves)/total_moves))
         #np.save('smartbidding_weights.npy', weights)
         break
 

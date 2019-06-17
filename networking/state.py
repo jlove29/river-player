@@ -3,10 +3,11 @@ import numpy as np
 
 
 class GameState():
-    def __init__(self, player, trick, tricks, rewards=0):
+    def __init__(self, player, trick, tricks, rewards=0, scores=[]):
         self.player = player
         self.tricks = tricks
         self.rewards = rewards
+        self.scores = scores
         if type(trick) == list:
             self.rounds = trick[0]
             self.trump = trick[1]

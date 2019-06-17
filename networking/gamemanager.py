@@ -87,10 +87,6 @@ def playround(rd):
     # assign points
     #print tricks
     for k in range(nplayers):
-        newstate = GameState(k, None, tricks[k])
-        # print(tricks[k])
-        send(k, 'rddone', newstate)
-        
         if tricks[k] == bids[k]:
             if tricks[k] == 0:
                 points[k] += 5
@@ -108,6 +104,11 @@ def playround(rd):
             pass
             # newstate = GameState(k, None, 0)
             # send(k, 'rddone', newstate)
+
+    for k in range(nplayers):
+        newstate = GameState(k, None, tricks[k], scores=points)
+        # print(tricks[k])
+        send(k, 'rddone', newstate)
         
 
     #print points
@@ -141,7 +142,7 @@ def go():
 
 
 totalpoints = np.zeros(nplayers)
-n = 50
+n = 1
 p1wins = 0
 for i in range(n):
     points = go()
